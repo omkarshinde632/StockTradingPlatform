@@ -30,25 +30,42 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// router.post("/login", async (req, res) => {
-//   const { email, password } = req.body;
+// LOGIN
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-//   const user = await User.findOne({ email });
-//   if (!user) {
-//     return res.status(400).json({ message: "Invalid credentials" });
-//   }
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
 
-//   const isMatch = await bcrypt.compare(password, user.password);
-//   if (!isMatch) {
-//     return res.status(400).json({ message: "Invalid credentials" });
-//   }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
+    }
 
-//   // Save login info in session
-//   req.session.userId = user._id;
-//   req.session.username = user.username;
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
+    }
 
-//   res.json({ message: "Login successful" });
-// });
+    
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: {
+        id: user._id,
+        name: user.username,  
+        email: user.email,
+      },
+    });
+
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ success: false, message: "Server error, try again later" });
+  }
+});
+
 
 
 module.exports = router;
